@@ -14,7 +14,7 @@ class UPlayerMappableInputConfig;
  * A container to organize loaded player mappable configs to their CommonUI input type
  */
 USTRUCT(BlueprintType)
-struct FLoadedMappableConfigPair
+struct GIEXT_API FLoadedMappableConfigPair
 {
 	GENERATED_BODY()
 public:
@@ -52,7 +52,7 @@ public:
  * A container to organize potentially unloaded player mappable configs to their CommonUI input type 
  */
 USTRUCT(BlueprintType)
-struct FMappableConfigPair
+struct GIEXT_API FMappableConfigPair
 {
 	GENERATED_BODY()
 public:
