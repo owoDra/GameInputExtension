@@ -1,15 +1,16 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright (C) 2023 owoDra
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+/**
+ *  Modules for the main features of the Game Iput Extension plugin
+ */
 class FGIExtModule : public IModuleInterface
 {
 public:
-
-	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
 };
