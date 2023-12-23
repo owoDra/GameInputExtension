@@ -10,6 +10,7 @@
 #include "PlayableComponent.generated.h"
 
 class UInputConfig;
+class AController;
 
 
 /**
@@ -37,7 +38,25 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
-	virtual void InitializePlayerInput();
+	virtual void InitializePlayerInput(AController* Controller);
+	virtual void UninitializePlayerInput(AController* Controller);
+
+	/**
+	 * Start listening for changes in the Pawn controller that owns this component
+	 */
+	void ListenControllerChange();
+
+	/**
+	 * Stop listening for changes in the controller of the Pawn that owns this component
+	 */
+	void UnlistenControllerChange();
+
+	/**
+	 * Run when the controller of the Pawn that owns this component is changed
+	 */
+	UFUNCTION()
+	void HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController);
+
 
 public:
 	virtual FName GetFeatureName() const override { return NAME_ActorFeatureName; }
@@ -61,10 +80,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetInputConfig(const UInputConfig* NewInputConfig);
 
-
 public:
 	void AddAdditionalInputConfig(const UInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UInputConfig* InputConfig);
+
 
 protected:
 	void TagInput_Pressed(FGameplayTag InputTag);

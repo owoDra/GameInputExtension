@@ -2,6 +2,10 @@
 
 #include "InputConfig.h"
 
+#if WITH_EDITOR
+#include "GIExtLogs.h"
+#endif
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(InputConfig)
 
 
@@ -20,3 +24,11 @@ void UInputConfig::RemoveBinds(UEnhancedInputComponent* InputComponent, TArray<u
 
 	BindHandles.Reset();
 }
+
+
+#if WITH_EDITOR
+void UInputConfig::PrintBindSuccessLog() const
+{
+	UE_LOG(LogGIE, Log, TEXT("Bind InputConfig(%s) to action Successed"), *GetNameSafe(this));
+}
+#endif

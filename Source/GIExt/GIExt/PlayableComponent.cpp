@@ -8,6 +8,7 @@
 
 #include "InitState/InitStateTags.h"
 
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -49,6 +50,8 @@ void UPlayableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ListenControllerChange();
+
 	// Start listening for changes in the initialization state of all features 
 	// related to the Pawn that owns this component.
 
@@ -65,49 +68,105 @@ void UPlayableComponent::BeginPlay()
 
 void UPlayableComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	UnlistenControllerChange();
+
+	if (auto* Pawn{ GetPawn<APawn>() })
+	{
+		if (auto* Controller{ Pawn->GetController() })
+		{
+			UninitializePlayerInput(Controller);
+		}
+	}
+	
 	UnregisterInitStateFeature();
 
 	Super::EndPlay(EndPlayReason);
 }
 
 
-void UPlayableComponent::InitializePlayerInput()
+void UPlayableComponent::InitializePlayerInput(AController* Controller)
 {
-	if (!DefaultInputConfig)
+	if (auto* PC{ Cast<APlayerController>(Controller) })
 	{
-		return;
+		// Check essential values
+
+		check(DefaultInputConfig);
+
+		const auto* Pawn{ GetPawnChecked<APawn>() };
+		if (auto* IC{ Cast<UEnhancedInputComponent>(Pawn->InputComponent) })
+		{
+			TArray<uint32> BindHandles;
+			DefaultInputConfig->BindTagActions(IC, this, &ThisClass::TagInput_Pressed, &ThisClass::TagInput_Released, /*out*/ BindHandles);
+
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Move_KM, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Move_Pad, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Look_KM, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookMouse);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Look_Pad, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookStick);
+		}
+
+		const auto* LP{ PC->GetLocalPlayer() };
+		if (auto* Subsystem{ LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr })
+		{
+			Subsystem->ClearAllMappings();
+
+			if (auto MappingContext{ DefaultInputConfig->DefaultMappingContext })
+			{
+				Subsystem->AddMappingContext(MappingContext, 0);
+			}
+		}
+
+		UE_LOG(LogGIE, Log, TEXT("Playable Component Initialized"));
+
+		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APlayerController*>(PC), NAME_BindInputsNow);
+		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 	}
+}
 
-	// Check essential values
+void UPlayableComponent::UninitializePlayerInput(AController* Controller)
+{
+	if (auto* PC{ Cast<APlayerController>(Controller) })
+	{
+		const auto* Pawn{ GetPawnChecked<APawn>() };
+		if (auto* IC{ Cast<UEnhancedInputComponent>(Pawn->InputComponent) })
+		{
+			IC->ClearBindingsForObject(this);
+		}
 
-	const auto* Pawn{ GetPawnChecked<APawn>() };
+		const auto* LP{ PC->GetLocalPlayer() };
+		if (auto* Subsystem{ LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr })
+		{
+			Subsystem->ClearAllMappings();
+		}
 
-	auto* IC{ Cast<UEnhancedInputComponent>(Pawn->InputComponent) };
-	check(IC);
+		UE_LOG(LogGIE, Log, TEXT("Playable Component Uninitialized"));
+	}
+}
 
-	const auto* PC{ GetController<APlayerController>() };
-	check(PC);
+void UPlayableComponent::ListenControllerChange()
+{
+	auto* Pawn{ GetPawnChecked<APawn>() };
 
-	const auto* LP{ PC->GetLocalPlayer() };
-	check(LP);
+	//Pawn->ReceiveControllerChangedDelegate.AddDynamic(this, &ThisClass::HandleControllerChanged);
 
-	auto* Subsystem{ LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() };
-	check(Subsystem);
+	FScriptDelegate NewDelegate;
+	NewDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UPlayableComponent, HandleControllerChanged));
 
-	// Initialize Input mappings
+	Pawn->ReceiveControllerChangedDelegate.Add(NewDelegate);
+}
 
-	Subsystem->ClearAllMappings();
+void UPlayableComponent::UnlistenControllerChange()
+{
+	auto* Pawn{ GetPawnChecked<APawn>() };
 
-	TArray<uint32> BindHandles;
-	DefaultInputConfig->BindTagActions(IC, this, &ThisClass::TagInput_Pressed, &ThisClass::TagInput_Released, /*out*/ BindHandles);
+	//Pawn->ReceiveControllerChangedDelegate.RemoveDynamic(this, &ThisClass::HandleControllerChanged);
 
-	DefaultInputConfig->BindNativeAction(IC, TAG_Input_Move_KM, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-	DefaultInputConfig->BindNativeAction(IC, TAG_Input_Move_Pad, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-	DefaultInputConfig->BindNativeAction(IC, TAG_Input_Look_KM, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookMouse);
-	DefaultInputConfig->BindNativeAction(IC, TAG_Input_Look_Pad, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookStick);
+	Pawn->ReceiveControllerChangedDelegate.RemoveAll(this);
+}
 
-	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APlayerController*>(PC), NAME_BindInputsNow);
-	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
+void UPlayableComponent::HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)
+{
+	UninitializePlayerInput(OldController);
+	InitializePlayerInput(NewController);
 }
 
 
@@ -133,30 +192,6 @@ bool UPlayableComponent::CanChangeInitState(UGameFrameworkComponentManager* Mana
 	 */
 	else if (CurrentState == TAG_InitState_Spawned && DesiredState == TAG_InitState_DataAvailable)
 	{
-		// Check if it is not SimulationProxy
-
-		if (Pawn->GetLocalRole() == ROLE_SimulatedProxy)
-		{
-			return false;
-		}
-
-		// Check if it is not a bot player
-
-		const auto bIsLocallyControlled{ Pawn->IsLocallyControlled() };
-		const auto bIsBot{ Pawn->IsBotControlled() };
-
-		if (!bIsLocallyControlled || bIsBot)
-		{
-			return false;
-		}
-
-		// Check has valid input component
-
-		if (!Pawn->InputComponent)
-		{
-			return false;
-		}
-
 		return true;
 	}
 
@@ -192,11 +227,9 @@ void UPlayableComponent::HandleChangeInitState(UGameFrameworkComponentManager* M
 	 */
 	if (CurrentState == TAG_InitState_DataAvailable && DesiredState == TAG_InitState_DataInitialized)
 	{
-		// Do only local
-
-		if (GetPawnChecked<APawn>()->IsLocallyControlled())
+		if (auto* Pawn{ GetPawnChecked<APawn>() })
 		{
-			InitializePlayerInput();
+			InitializePlayerInput(Pawn->GetController());
 		}
 	}
 }
@@ -235,7 +268,6 @@ void UPlayableComponent::SetInputConfig(const UInputConfig* NewInputConfig)
 	}
 }
 
-
 void UPlayableComponent::AddAdditionalInputConfig(const UInputConfig* InputConfig)
 {
 	TArray<uint32> BindHandles;
@@ -273,11 +305,15 @@ void UPlayableComponent::RemoveAdditionalInputConfig(const UInputConfig* InputCo
 
 void UPlayableComponent::TagInput_Pressed(FGameplayTag InputTag)
 {
+	// UE_LOG(LogGIE, Log, TEXT("Recieved Tag Pressed Input(%s)"), *InputTag.GetTagName().ToString());
+
 	TagInput_PressedExtra(InputTag);
 }
 
 void UPlayableComponent::TagInput_Released(FGameplayTag InputTag)
 {
+	// UE_LOG(LogGIE, Log, TEXT("Recieved Tag Released Input(%s)"), *InputTag.GetTagName().ToString());
+
 	TagInput_ReleasedExtra(InputTag);
 }
 
@@ -299,6 +335,8 @@ void UPlayableComponent::NativeInput_Move(const FInputActionValue& InputActionVa
 		const auto Value{ InputActionValue.Get<FVector2D>() };
 		const auto MovementRotation{ FRotator(0.0f, Controller->GetControlRotation().Yaw, 0.0f) };
 
+		// UE_LOG(LogGIE, Log, TEXT("Recieved Movement Input(%s)"), *Value.ToString());
+
 		if (Value.X != 0.0f)
 		{
 			const auto MovementDirection{ MovementRotation.RotateVector(FVector::RightVector) };
@@ -318,6 +356,8 @@ void UPlayableComponent::NativeInput_LookMouse(const FInputActionValue& InputAct
 	if (auto* Pawn{ GetPawn<APawn>() })
 	{
 		const auto Value{ InputActionValue.Get<FVector2D>() };
+
+		// UE_LOG(LogGIE, Log, TEXT("Recieved Look Input(%s)"), *Value.ToString());
 
 		if (Value.X != 0.0f)
 		{

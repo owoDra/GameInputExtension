@@ -10,6 +10,7 @@
 #include "InputConfig.generated.h"
 
 class UInputAction;
+class UInputMappingContext;
 
 
 /**
@@ -22,18 +23,32 @@ class GIEXT_API UInputConfig : public UDataAsset
 public:
 	UInputConfig(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+private:
+#if WITH_EDITOR
+	void PrintBindSuccessLog() const;
+#endif
+
 public:
 	//
 	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and must be manually bound.
 	//
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (ForceInlineRow, Categories = "InputTag"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (ForceInlineRow, Categories = "Input"))
 	TMap<FGameplayTag, TObjectPtr<const UInputAction>> NativeInputActions;
 
 	//
 	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and are automatically bound to abilities with matching input tags.
 	//
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (ForceInlineRow, Categories = "InputTag"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (ForceInlineRow, Categories = "Input"))
 	TMap<FGameplayTag, TObjectPtr<const UInputAction>> TagInputActions;
+
+	//
+	// InputMappingContext applied by default
+	// 
+	// Tips:
+	//	No need to set if setting by GameFeatureAction, etc.
+	//
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+	TObjectPtr<UInputMappingContext> DefaultMappingContext{ nullptr };
 
 public:
 	void RemoveBinds(UEnhancedInputComponent* InputComponent, TArray<uint32>& BindHandles) const;
@@ -45,6 +60,9 @@ public:
 
 		if (auto IA{ NativeInputActions.FindRef(InputTag) })
 		{
+#if WITH_EDITOR
+			PrintBindSuccessLog();
+#endif
 			InputComponent->BindAction(IA, TriggerEvent, Object, Func);
 		}
 	}
@@ -61,6 +79,10 @@ public:
 
 			if (InputAction && InputTag.IsValid())
 			{
+#if WITH_EDITOR
+				PrintBindSuccessLog();
+#endif
+
 				if (PressedFunc)
 				{
 					BindHandles.Add(InputComponent->BindAction(InputAction, ETriggerEvent::Started, Object, PressedFunc, InputTag).GetHandle());
