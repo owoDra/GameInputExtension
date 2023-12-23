@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "Components/PawnComponent.h"
-#include "Components/GameFrameworkInitStateInterface.h"
+#include "Component/GFCPawnComponent.h"
 
 #include "InputActionValue.h"
 
@@ -17,9 +16,7 @@ class AController;
  * Component that initializes the player-controlled Pawn Input
  */
 UCLASS(Meta=(BlueprintSpawnableComponent))
-class GIEXT_API UPlayableComponent 
-	: public UPawnComponent
-	, public IGameFrameworkInitStateInterface
+class GIEXT_API UPlayableComponent : public UGFCPawnComponent
 {
 	GENERATED_BODY()
 public:
@@ -33,11 +30,9 @@ public:
 	static const FName NAME_BindInputsNow;
 
 protected:
-	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-protected:
 	virtual void InitializePlayerInput(AController* Controller);
 	virtual void UninitializePlayerInput(AController* Controller);
 
@@ -60,10 +55,10 @@ protected:
 
 public:
 	virtual FName GetFeatureName() const override { return NAME_ActorFeatureName; }
-	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const override;
-	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) override;
-	virtual void OnActorInitStateChanged(const FActorInitStateChangedParams& Params) override;
-	virtual void CheckDefaultInitialization() override;
+
+protected:
+	virtual bool CanChangeInitStateToDataInitialized(UGameFrameworkComponentManager* Manager) const override;
+	virtual void HandleChangeInitStateToDataInitialized(UGameFrameworkComponentManager* Manager) override;
 
 
 protected:

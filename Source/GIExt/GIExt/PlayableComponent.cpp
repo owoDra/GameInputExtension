@@ -26,44 +26,11 @@ UPlayableComponent::UPlayableComponent(const FObjectInitializer& ObjectInitializ
 }
 
 
-void UPlayableComponent::OnRegister()
-{
-	Super::OnRegister();
-
-	// This component can only be added to classes derived from APawn
-
-	const auto* Pawn{ GetPawn<APawn>() };
-	ensureAlwaysMsgf((Pawn != nullptr), TEXT("PlayableComponent on [%s] can only be added to Pawn actors."), *GetNameSafe(GetOwner()));
-
-	// No more than two of these components should be added to a Actor.
-
-	TArray<UActorComponent*> Components;
-	GetOwner()->GetComponents(UPlayableComponent::StaticClass(), Components);
-	ensureAlwaysMsgf((Components.Num() == 1), TEXT("Only one PlayableComponent should exist on [%s]."), *GetNameSafe(GetOwner()));
-
-	// Register this component in the GameFrameworkComponentManager.
-
-	RegisterInitStateFeature();
-}
-
 void UPlayableComponent::BeginPlay()
 {
-	Super::BeginPlay();
-
 	ListenControllerChange();
 
-	// Start listening for changes in the initialization state of all features 
-	// related to the Pawn that owns this component.
-
-	BindOnActorInitStateChanged(NAME_None, FGameplayTag(), false);
-
-	// Change the initialization state of this component to [Spawned]
-
-	ensure(TryToChangeInitState(TAG_InitState_Spawned));
-
-	// Check if initialization process can continue
-
-	CheckDefaultInitialization();
+	Super::BeginPlay();
 }
 
 void UPlayableComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -77,8 +44,6 @@ void UPlayableComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			UninitializePlayerInput(Controller);
 		}
 	}
-	
-	UnregisterInitStateFeature();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -170,85 +135,17 @@ void UPlayableComponent::HandleControllerChanged(APawn* Pawn, AController* OldCo
 }
 
 
-bool UPlayableComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const
+bool UPlayableComponent::CanChangeInitStateToDataInitialized(UGameFrameworkComponentManager* Manager) const
 {
-	check(Manager);
-
-	auto* Pawn{ GetPawn<APawn>() };
-
-	/**
-	 * [InitState None] -> [InitState Spawned]
-	 */
-	if (!CurrentState.IsValid() && DesiredState == TAG_InitState_Spawned)
-	{
-		if (Pawn)
-		{
-			return true;
-		}
-	}
-
-	/**
-	 * [InitState Spawned] -> [InitState DataAvailable]
-	 */
-	else if (CurrentState == TAG_InitState_Spawned && DesiredState == TAG_InitState_DataAvailable)
-	{
-		return true;
-	}
-
-	/**
-	 * [InitState DataAvailable] -> [InitState DataInitialized]
-	 */
-	else if (CurrentState == TAG_InitState_DataAvailable && DesiredState == TAG_InitState_DataInitialized)
-	{
-		if (DefaultInputConfig)
-		{
-			return true;
-		}
-	}
-
-	/**
-	 * [InitState DataInitialized] -> [InitState GameplayReady]
-	 */
-	else if (CurrentState == TAG_InitState_DataInitialized && DesiredState == TAG_InitState_GameplayReady)
-	{
-		return true;
-	}
-
-	return false;
+	return (DefaultInputConfig != nullptr);
 }
 
-void UPlayableComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
+void UPlayableComponent::HandleChangeInitStateToDataInitialized(UGameFrameworkComponentManager* Manager)
 {
-	UE_LOG(LogGIE, Log, TEXT("[%s] Playable Component InitState Reached: %s"),
-		GetOwner()->HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT"), *DesiredState.GetTagName().ToString());
-
-	/**
-	 * [InitState DataAvailable] -> [InitState DataInitialized]
-	 */
-	if (CurrentState == TAG_InitState_DataAvailable && DesiredState == TAG_InitState_DataInitialized)
+	if (auto* Pawn{ GetPawnChecked<APawn>() })
 	{
-		if (auto* Pawn{ GetPawnChecked<APawn>() })
-		{
-			InitializePlayerInput(Pawn->GetController());
-		}
+		InitializePlayerInput(Pawn->GetController());
 	}
-}
-
-void UPlayableComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
-{
-}
-
-void UPlayableComponent::CheckDefaultInitialization()
-{
-	static const TArray<FGameplayTag> StateChain
-	{
-		TAG_InitState_Spawned,
-		TAG_InitState_DataAvailable,
-		TAG_InitState_DataInitialized,
-		TAG_InitState_GameplayReady
-	};
-
-	ContinueInitStateChain(StateChain);
 }
 
 

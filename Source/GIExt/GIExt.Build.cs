@@ -29,6 +29,7 @@ public class GIExt : ModuleRules
                 "CommonInput",
                 "CommonUI",
                 "ModularGameplay",
+                "GFCore",
             }
         );
 
@@ -36,7 +37,6 @@ public class GIExt : ModuleRules
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
-                "GFCore",
             }
         );
     }
