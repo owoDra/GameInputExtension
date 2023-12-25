@@ -24,6 +24,7 @@ public class GIExt : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "GameplayTags",
+                "GameFeatures",
                 "InputCore",
                 "EnhancedInput",
                 "CommonInput",
