@@ -1,4 +1,4 @@
-// Copyright (C) 2023 owoDra
+﻿// Copyright (C) 2023 owoDra
 
 #include "PlayableComponent.h"
 
@@ -56,9 +56,8 @@ void UPlayableComponent::InitializePlayerInput(AController* Controller)
 		// Check essential values
 
 		check(DefaultInputConfig);
-
-		const auto* Pawn{ GetPawnChecked<APawn>() };
-		if (auto* IC{ Cast<UEnhancedInputComponent>(Pawn->InputComponent) })
+		
+		if (auto* IC{ Cast<UEnhancedInputComponent>(PC->InputComponent) })
 		{
 			TArray<uint32> BindHandles;
 			DefaultInputConfig->BindTagActions(IC, this, &ThisClass::TagInput_Pressed, &ThisClass::TagInput_Released, /*out*/ BindHandles);
@@ -83,7 +82,7 @@ void UPlayableComponent::InitializePlayerInput(AController* Controller)
 		UE_LOG(LogGIE, Log, TEXT("Playable Component Initialized"));
 
 		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APlayerController*>(PC), NAME_BindInputsNow);
-		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
+		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(GetPawnChecked<APawn>()), NAME_BindInputsNow);
 	}
 }
 
