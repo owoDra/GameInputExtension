@@ -62,10 +62,10 @@ void UPlayableComponent::InitializePlayerInput(AController* Controller)
 			TArray<uint32> BindHandles;
 			DefaultInputConfig->BindTagActions(IC, this, &ThisClass::TagInput_Pressed, &ThisClass::TagInput_Released, /*out*/ BindHandles);
 
-			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Move_KM, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Move_Pad, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Look_KM, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookMouse);
-			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Look_Pad, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookStick);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_MouseAndKeyboard_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Gamepad_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_MouseAndKeyboard_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookMouse);
+			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Gamepad_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookStick);
 		}
 
 		const auto* LP{ PC->GetLocalPlayer() };

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 owoDra
+﻿// Copyright (C) 2023 owoDra
 
 #pragma once
 
@@ -8,12 +8,12 @@
 ////////////////////////////////////
 // Input.Move
 
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Move_KM);
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Move_Pad);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_MouseAndKeyboard_Move);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Gamepad_Move);
 
 
 ////////////////////////////////////
 // Input.Look
 
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Look_KM);
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Look_Pad);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_MouseAndKeyboard_Look);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Gamepad_Look);

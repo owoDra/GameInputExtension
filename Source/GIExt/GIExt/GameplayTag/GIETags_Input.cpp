@@ -1,4 +1,4 @@
-// Copyright (C) 2023 owoDra
+﻿// Copyright (C) 2023 owoDra
 
 #include "GIETags_Input.h"
 
@@ -6,12 +6,12 @@
 ////////////////////////////////////
 // Input.Move
 
-UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Move_KM	, "Input.Move.KM");
-UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Move_Pad	, "Input.Move.Pad");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_MouseAndKeyboard_Move	, "Input.MouseAndKeyboard.Move");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Gamepad_Move			, "Input.Gamepad.Move");
 
 
 ////////////////////////////////////
 // Input.Look
 
-UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Look_KM	, "Input.Look.KM");
-UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Look_Pad	, "Input.Look.Pad");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_MouseAndKeyboard_Look	, "Input.MouseAndKeyboard.Look");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Gamepad_Look			, "Input.Gamepad.Look");
