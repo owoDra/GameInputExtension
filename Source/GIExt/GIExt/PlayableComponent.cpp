@@ -68,21 +68,20 @@ void UPlayableComponent::InitializePlayerInput(AController* Controller)
 			DefaultInputConfig->BindNativeAction(IC, TAG_Input_Gamepad_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_LookStick);
 		}
 
-		const auto* LP{ PC->GetLocalPlayer() };
-		if (auto* Subsystem{ LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr })
+		if (auto MappingContext{ DefaultInputConfig->DefaultMappingContext })
 		{
-			Subsystem->ClearAllMappings();
-
-			if (auto MappingContext{ DefaultInputConfig->DefaultMappingContext })
+			const auto* LP{ PC->GetLocalPlayer() };
+			if (auto* Subsystem{ LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr })
 			{
+				Subsystem->ClearAllMappings();
 				Subsystem->AddMappingContext(MappingContext, 0);
 			}
 		}
 
 		UE_LOG(LogGIE, Log, TEXT("Playable Component Initialized"));
 
-		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APlayerController*>(PC), NAME_BindInputsNow);
-		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(GetPawnChecked<APawn>()), NAME_BindInputsNow);
+		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(PC, NAME_BindInputsNow);
+		UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(GetPawnChecked<APawn>(), NAME_BindInputsNow);
 	}
 }
 

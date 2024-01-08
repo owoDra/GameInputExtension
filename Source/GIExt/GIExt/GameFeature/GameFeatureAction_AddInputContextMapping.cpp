@@ -1,4 +1,4 @@
-// Copyright (C) 2023 owoDra
+﻿// Copyright (C) 2023 owoDra
 
 #include "GameFeatureAction_AddInputContextMapping.h"
 
@@ -72,8 +72,8 @@ void UGameFeatureAction_AddInputContextMapping::AddToWorld(const FWorldContext& 
 	{
 		if (auto* Manager{ UGameInstance::GetSubsystem<UGameFrameworkComponentManager>(GameInstance) })
 		{
-			auto AddAbilitiesDelegate{ UGameFrameworkComponentManager::FExtensionHandlerDelegate::CreateUObject(this, &ThisClass::HandleControllerExtension, ChangeContext) };
-			auto ExtensionRequestHandle{ Manager->AddExtensionHandler(APlayerController::StaticClass(), AddAbilitiesDelegate) };
+			auto AddInputContextMappingDelegate{ UGameFrameworkComponentManager::FExtensionHandlerDelegate::CreateUObject(this, &ThisClass::HandleControllerExtension, ChangeContext) };
+			auto ExtensionRequestHandle{ Manager->AddExtensionHandler(APlayerController::StaticClass(), AddInputContextMappingDelegate) };
 
 			ActiveData.ExtensionRequestHandles.Add(ExtensionRequestHandle);
 		}
