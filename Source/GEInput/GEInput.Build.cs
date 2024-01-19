@@ -22,7 +22,7 @@ public class GEInput : ModuleRules
             {
                 "Core", "CoreUObject", "Engine",
 
-                "GameplayTags",
+                "GameplayTags", "GameFeatures", "ModularGameplay",
 
                 "InputCore", "EnhancedInput", 
 

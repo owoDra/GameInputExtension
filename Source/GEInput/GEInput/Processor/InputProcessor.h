@@ -6,12 +6,12 @@
 
 #include "InputProcessor.generated.h"
 
-class UCoreInputComponent;
+class UInputProcessComponent;
 class UInputAction;
 
 
 /**
- * 
+ * Class for performing specific input processing of actors
  */
 UCLASS(Abstract, Blueprintable)
 class GEINPUT_API UInputProcessor : public UObject
@@ -40,15 +40,17 @@ protected:
 	bool bBind_Complete{ true };
 
 public:
-	void Initialize(UCoreInputComponent* InputComponent);
-	void Deinitialize(UCoreInputComponent* InputComponent);
+	void Initialize(UInputProcessComponent* InputComponent);
+	void Deinitialize(UInputProcessComponent* InputComponent);
 
 protected:
-	UFUNCTION(BlueprintImplementableEvent, Category = "Initialization")
-	void OnInitialized(UCoreInputComponent* InputComponent);
+	UFUNCTION(BlueprintNativeEvent, Category = "Initialization")
+	void OnInitialized(UInputProcessComponent* InputComponent);
+	virtual void OnInitialized_Implementation(UInputProcessComponent* InputComponent) {}
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Initialization")
-	void OnDeinitialize(UCoreInputComponent* InputComponent);
+	UFUNCTION(BlueprintNativeEvent, Category = "Initialization")
+	void OnDeinitialize(UInputProcessComponent* InputComponent);
+	virtual void OnDeinitialize_Implementation(UInputProcessComponent* InputComponent) {}
 
 
 protected:

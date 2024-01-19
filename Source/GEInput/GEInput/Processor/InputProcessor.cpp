@@ -2,7 +2,7 @@
 
 #include "InputProcessor.h"
 
-#include "CoreInputComponent.h"
+#include "InputProcessComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(InputProcessor)
 
@@ -13,7 +13,7 @@ UInputProcessor::UInputProcessor(const FObjectInitializer& ObjectInitializer)
 }
 
 
-void UInputProcessor::Initialize(UCoreInputComponent* InputComponent)
+void UInputProcessor::Initialize(UInputProcessComponent* InputComponent)
 {
 	check(InputComponent);
 
@@ -54,7 +54,7 @@ void UInputProcessor::Initialize(UCoreInputComponent* InputComponent)
 	OnInitialized(InputComponent);
 }
 
-void UInputProcessor::Deinitialize(UCoreInputComponent* InputComponent)
+void UInputProcessor::Deinitialize(UInputProcessComponent* InputComponent)
 {
 	OnDeinitialize(InputComponent);
 
