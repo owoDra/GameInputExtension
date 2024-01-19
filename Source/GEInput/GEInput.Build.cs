@@ -2,34 +2,30 @@
 
 using UnrealBuildTool;
 
-public class GIExt : ModuleRules
+public class GEInput : ModuleRules
 {
-	public GIExt(ReadOnlyTargetRules Target) : base(Target)
+	public GEInput(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(
-           new string[]
-           {
+            new string[]
+            {
                 ModuleDirectory,
-                ModuleDirectory + "/GIExt",
-           }
-       );
+                ModuleDirectory + "/GEInput",
+            }
+        );
 
 
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
-                "CoreUObject",
-                "Engine",
+                "Core", "CoreUObject", "Engine",
+
                 "GameplayTags",
-                "GameFeatures",
-                "InputCore",
-                "EnhancedInput",
-                "CommonInput",
-                "CommonUI",
-                "ModularGameplay",
+
+                "InputCore", "EnhancedInput", 
+
                 "GFCore",
             }
         );

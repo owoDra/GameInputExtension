@@ -5,9 +5,9 @@
 #include "Modules/ModuleManager.h"
 
 /**
- *  Modules for the main features of the Game Iput Extension plugin
+ *  Modules for the main features of the GameInputCore plugin
  */
-class FGIExtModule : public IModuleInterface
+class FGEInputModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;
