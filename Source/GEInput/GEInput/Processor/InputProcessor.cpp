@@ -16,7 +16,7 @@ UInputProcessor::UInputProcessor(const FObjectInitializer& ObjectInitializer)
 void UInputProcessor::Initialize(UInputProcessComponent* InputComponent)
 {
 	check(InputComponent);
-
+	
 	for (const auto& KVP : InputActions)
 	{
 		const auto& InputTag{ KVP.Key };
