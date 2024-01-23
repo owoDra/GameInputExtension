@@ -1,4 +1,4 @@
-// Copyright (C) 2024 owoDra
+﻿// Copyright (C) 2024 owoDra
 
 #pragma once
 
@@ -6,8 +6,8 @@
 
 #include "GameFeatureAction_AddInputProcessors.generated.h"
 
-class UInputProcessor;
 class AActor;
+class UInputProcessor;
 struct FComponentRequestHandle;
 
 
@@ -37,7 +37,7 @@ public:
 
 
 /**
- * 
+ * GameFeatureAction to grant InputProcessor
  */
 UCLASS(meta = (DisplayName = "Add Input Processor"))
 class UGameFeatureAction_AddInputProcessors final : public UGameFeatureAction_WorldActionBase

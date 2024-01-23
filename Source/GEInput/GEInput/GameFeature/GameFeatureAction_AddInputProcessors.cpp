@@ -1,4 +1,4 @@
-// Copyright (C) 2024 owoDra
+﻿// Copyright (C) 2024 owoDra
 
 #include "GameFeatureAction_AddInputProcessors.h"
 
@@ -44,7 +44,8 @@ void UGameFeatureAction_AddInputProcessors::OnGameFeatureActivating(FGameFeature
 {
 	auto& ActiveData{ ContextData.FindOrAdd(Context) };
 
-	if (!ensure(ActiveData.ExtensionRequestHandles.IsEmpty()) || !ensure(ActiveData.ActorsAddedTo.IsEmpty()))
+	if (!ensure(ActiveData.ExtensionRequestHandles.IsEmpty()) || 
+		!ensure(ActiveData.ActorsAddedTo.IsEmpty()))
 	{
 		Reset(ActiveData);
 	}
@@ -68,10 +69,14 @@ void UGameFeatureAction_AddInputProcessors::OnGameFeatureDeactivating(FGameFeatu
 void UGameFeatureAction_AddInputProcessors::AddToWorld(const FWorldContext& WorldContext, const FGameFeatureStateChangeContext& ChangeContext)
 {
 	auto* World{ WorldContext.World() };
-	auto GameInstance{ WorldContext.OwningGameInstance };
-	auto& ActiveData{ ContextData.FindOrAdd(ChangeContext) };
+	const auto bIsGameWorld{ World ? World->IsGameWorld() : false };
 
-	if ((GameInstance != nullptr) && (World != nullptr) && World->IsGameWorld())
+	auto GameInstance{ WorldContext.OwningGameInstance };
+	auto* ComponentManager{ UGameInstance::GetSubsystem<UGameFrameworkComponentManager>(GameInstance) };
+
+	FPerContextData& ActiveData = ContextData.FindOrAdd(ChangeContext);
+
+	if (ComponentManager && bIsGameWorld)
 	{
 		auto EntryIndex{ 0 };
 		for (const auto& Entry : InputProcessors)
@@ -111,42 +116,61 @@ void UGameFeatureAction_AddInputProcessors::Reset(FPerContextData& ActiveData)
 
 void UGameFeatureAction_AddInputProcessors::HandleActorExtension(AActor* Actor, FName EventName, int32 EntryIndex, FGameFeatureStateChangeContext ChangeContext)
 {
-	auto& ActiveData{ ContextData.FindOrAdd(ChangeContext) };
+	auto* ActiveData{ ContextData.Find(ChangeContext) };
 
-	if ((EventName == UGameFrameworkComponentManager::NAME_ExtensionRemoved) || (EventName == UGameFrameworkComponentManager::NAME_ReceiverRemoved))
+	if (InputProcessors.IsValidIndex(EntryIndex) && ActiveData)
 	{
-		AddInputProcessorsForActor(Actor, InputProcessors[EntryIndex], ActiveData);
-	}
-	else if ((EventName == UGameFrameworkComponentManager::NAME_ExtensionAdded) || (EventName == UInputProcessComponent::NAME_InputComponentReady))
-	{
-		RemoveInputProcessorsForActor(Actor, ActiveData);
+		const auto& Entry{ InputProcessors[EntryIndex] };
+
+		if ((EventName == UGameFrameworkComponentManager::NAME_ExtensionRemoved) || (EventName == UGameFrameworkComponentManager::NAME_ReceiverRemoved))
+		{
+			RemoveInputProcessorsForActor(Actor, *ActiveData);
+		}
+		else if ((EventName == UGameFrameworkComponentManager::NAME_ExtensionAdded) || (EventName == UInputProcessComponent::NAME_InputComponentReady))
+		{
+			AddInputProcessorsForActor(Actor, Entry, *ActiveData);
+		}
 	}
 }
 
 void UGameFeatureAction_AddInputProcessors::AddInputProcessorsForActor(AActor* Actor, const FInputProcessorsToAdd& InputProcessorsToAdd, FPerContextData& ActiveData)
 {
-	auto* InputComponent{ Cast<UInputProcessComponent>(Actor->InputComponent) };
-	InputComponent = InputComponent ? InputComponent : Actor->FindComponentByClass<UInputProcessComponent>();
+	check(Actor);
 
-	if (InputComponent)
+	if (Actor->HasLocalNetOwner())
 	{
-		for (const auto& Entry : InputProcessorsToAdd.Processors)
-		{
-			auto* ProcessorToAdd{ Entry.IsValid() ? Entry.Get() : Entry.LoadSynchronous() };
+		auto* InputComponent{ Cast<UInputProcessComponent>(Actor->InputComponent) };
+		InputComponent = InputComponent ? InputComponent : Actor->FindComponentByClass<UInputProcessComponent>();
 
-			InputComponent->AddInputProcessor(ProcessorToAdd);
+		if (InputComponent)
+		{
+			for (const auto& Entry : InputProcessorsToAdd.Processors)
+			{
+				auto* ProcessorToAdd{ Entry.IsValid() ? Entry.Get() : Entry.LoadSynchronous() };
+
+				InputComponent->AddInputProcessor(ProcessorToAdd);
+			}
 		}
+
+		ActiveData.ActorsAddedTo.Add(Actor);
 	}
 }
 
 void UGameFeatureAction_AddInputProcessors::RemoveInputProcessorsForActor(AActor* Actor, FPerContextData& ActiveData)
 {
-	auto* InputComponent{ Cast<UInputProcessComponent>(Actor->InputComponent) };
-	InputComponent = InputComponent ? InputComponent : Actor->FindComponentByClass<UInputProcessComponent>();
+	check(Actor);
 
-	if (InputComponent)
+	if (Actor->HasLocalNetOwner())
 	{
-		InputComponent->RemoveAllInputProcessors();
+		auto* InputComponent{ Cast<UInputProcessComponent>(Actor->InputComponent) };
+		InputComponent = InputComponent ? InputComponent : Actor->FindComponentByClass<UInputProcessComponent>();
+
+		if (InputComponent)
+		{
+			InputComponent->RemoveAllInputProcessors();
+		}
+
+		ActiveData.ActorsAddedTo.Remove(Actor);
 	}
 }
 
