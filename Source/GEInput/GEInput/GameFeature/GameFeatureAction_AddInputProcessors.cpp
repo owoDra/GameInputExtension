@@ -74,7 +74,7 @@ void UGameFeatureAction_AddInputProcessors::AddToWorld(const FWorldContext& Worl
 	auto GameInstance{ WorldContext.OwningGameInstance };
 	auto* ComponentManager{ UGameInstance::GetSubsystem<UGameFrameworkComponentManager>(GameInstance) };
 
-	FPerContextData& ActiveData = ContextData.FindOrAdd(ChangeContext);
+	auto& ActiveData{ ContextData.FindOrAdd(ChangeContext) };
 
 	if (ComponentManager && bIsGameWorld)
 	{
