@@ -160,18 +160,15 @@ void UGameFeatureAction_AddInputProcessors::RemoveInputProcessorsForActor(AActor
 {
 	check(Actor);
 
-	if (Actor->HasLocalNetOwner())
+	auto* InputComponent{ Cast<UInputProcessComponent>(Actor->InputComponent) };
+	InputComponent = InputComponent ? InputComponent : Actor->FindComponentByClass<UInputProcessComponent>();
+
+	if (InputComponent)
 	{
-		auto* InputComponent{ Cast<UInputProcessComponent>(Actor->InputComponent) };
-		InputComponent = InputComponent ? InputComponent : Actor->FindComponentByClass<UInputProcessComponent>();
-
-		if (InputComponent)
-		{
-			InputComponent->RemoveAllInputProcessors();
-		}
-
-		ActiveData.ActorsAddedTo.Remove(Actor);
+		InputComponent->RemoveAllInputProcessors();
 	}
+
+	ActiveData.ActorsAddedTo.Remove(Actor);
 }
 
 #undef LOCTEXT_NAMESPACE
