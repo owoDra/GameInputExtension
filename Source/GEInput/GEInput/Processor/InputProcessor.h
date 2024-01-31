@@ -21,22 +21,22 @@ public:
 	UInputProcessor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Input Process")
+	UPROPERTY(EditDefaultsOnly, Category = "Input Process", meta = (ForceInlineRow, Categories = "Input"))
 	TMap<FGameplayTag, TObjectPtr<UInputAction>> InputActions;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input Process")
+	UPROPERTY(EditDefaultsOnly, Category = "Input Process|Bind")
 	bool bBind_Triggered{ false };
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input Process")
+	UPROPERTY(EditDefaultsOnly, Category = "Input Process|Bind")
 	bool bBind_Started{ true };
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input Process")
+	UPROPERTY(EditDefaultsOnly, Category = "Input Process|Bind")
 	bool bBind_Ongoing{ false };
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input Process")
+	UPROPERTY(EditDefaultsOnly, Category = "Input Process|Bind")
 	bool bBind_Canceled{ false };
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input Process")
+	UPROPERTY(EditDefaultsOnly, Category = "Input Process|Bind")
 	bool bBind_Complete{ true };
 
 public:
